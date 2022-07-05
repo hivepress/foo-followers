@@ -9,6 +9,9 @@
  * Domain Path: /languages/
  */
 
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
 // Register extension directory.
 add_filter(
 	'hivepress/v1/extensions',
