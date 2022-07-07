@@ -1,10 +1,4 @@
 <?php
-/**
- * Follow component.
- *
- * @package HivePress\Components
- */
-// todo
 namespace HivePress\Components;
 
 use HivePress\Helpers as hp;
@@ -14,9 +8,7 @@ use HivePress\Models;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Follow component class.
- *
- * @class Follow
+ * Component class.
  */
 final class Follow extends Component {
 
@@ -27,11 +19,11 @@ final class Follow extends Component {
 	 */
 	public function __construct( $args = [] ) {
 
-		// Set follows.
-		add_action( 'init', [ $this, 'set_follows' ], 100 );
+		// Set request context.
+		add_filter( 'hivepress/v1/components/request/context', [ $this, 'set_request_context' ] );
 
 		// Alter account menu.
-		add_filter( 'hivepress/v1/menus/user_account', [ $this, 'alter_user_account_menu' ] );
+		add_filter( 'hivepress/v1/menus/user_account', [ $this, 'add_menu_items' ] );
 
 		// Alter templates.
 		add_filter( 'hivepress/v1/templates/vendor_view_block', [ $this, 'alter_vendor_view_block' ] );
@@ -41,55 +33,54 @@ final class Follow extends Component {
 	}
 
 	/**
-	 * Sets follows.
+	 * Sets request context.
 	 */
-	public function set_follows() {
+	public function set_request_context( $context ) {
 
-		// Check authentication.
-		if ( ! is_user_logged_in() ) {
-			return;
-		}
+		// Get user ID.
+		$user_id = get_current_user_id();
 
-		// Set query.
-		$query = Models\Follow::query()->filter(
-			[
-				'user' => get_current_user_id(),
-			]
-		)->order( [ 'added_date' => 'desc' ] );
+		// Get cached vendor IDs.
+		$vendor_ids = hivepress()->cache->get_user_cache( $user_id, 'vendor_follow_ids', 'models/follow' );
 
-		// Get cached IDs.
-		$follow_ids = hivepress()->cache->get_user_cache( get_current_user_id(), array_merge( $query->get_args(), [ 'fields' => 'vendor_ids' ] ), 'models/follow' );
+		if ( is_null( $vendor_ids ) ) {
 
-		if ( is_null( $follow_ids ) ) {
+			// Get follows.
+			$follows = Models\Follow::query()->filter(
+				[
+					'user' => $user_id,
+				]
+			)->get();
 
-			// Get follow IDs.
-			$follow_ids = array_map(
-				function( $follow ) {
-					return $follow->get_vendor__id();
-				},
-				$query->get()->serialize()
-			);
+			// Get vendor IDs.
+			$vendor_ids = [];
 
-			// Cache IDs.
-			if ( count( $follow_ids ) <= 1000 ) {
-				hivepress()->cache->set_user_cache( get_current_user_id(), array_merge( $query->get_args(), [ 'fields' => 'vendor_ids' ] ), 'models/follow', $follow_ids );
+			foreach ( $follows as $follow ) {
+				$vendor_ids[] = $follow->get_vendor__id();
+			}
+
+			// Cache vendor IDs.
+			if ( count( $vendor_ids ) <= 1000 ) {
+				hivepress()->cache->set_user_cache( $user_id, 'vendor_follow_ids', 'models/follow', $vendor_ids );
 			}
 		}
 
 		// Set request context.
-		hivepress()->request->set_context( 'follow_ids', $follow_ids );
+		$context['vendor_follow_ids'] = $vendor_ids;
+
+		return $context;
 	}
 
 	/**
-	 * Alters account menu.
+	 * Adds menu items.
 	 *
 	 * @param array $menu Menu arguments.
 	 * @return array
 	 */
-	public function alter_account_menu( $menu ) {
-		if ( hivepress()->request->get_context( 'follow_ids' ) ) {
-			$menu['items']['listings_follow'] = [
-				'route'  => 'listings_follow_page',
+	public function add_menu_items( $menu ) {
+		if ( hivepress()->request->get_context( 'vendor_follow_ids' ) ) {
+			$menu['items']['listings_feed'] = [
+				'route'  => 'listings_feed_page',
 				'_order' => 20,
 			];
 		}
@@ -103,20 +94,20 @@ final class Follow extends Component {
 	 * @param array $template Template arguments.
 	 * @return array
 	 */
-	public function alter_listing_view_block( $template ) {
+	public function alter_vendor_view_block( $template ) {
 		return hp\merge_trees(
 			$template,
 			[
 				'blocks' => [
-					'listing_actions_primary' => [
+					'vendor_actions_primary' => [
 						'blocks' => [
-							'listing_follow_toggle' => [
+							'vendor_follow_toggle' => [
 								'type'       => 'follow_toggle',
 								'view'       => 'icon',
 								'_order'     => 20,
 
 								'attributes' => [
-									'class' => [ 'hp-listing__action', 'hp-listing__action--follow' ],
+									'class' => [ 'hp-vendor__action', 'hp-vendor__action--follow' ],
 								],
 							],
 						],
@@ -132,19 +123,19 @@ final class Follow extends Component {
 	 * @param array $template Template arguments.
 	 * @return array
 	 */
-	public function alter_listing_view_page( $template ) {
+	public function alter_vendor_view_page( $template ) {
 		return hp\merge_trees(
 			$template,
 			[
 				'blocks' => [
-					'listing_actions_secondary' => [
+					'vendor_actions_primary' => [
 						'blocks' => [
-							'listing_follow_toggle' => [
+							'vendor_follow_toggle' => [
 								'type'       => 'follow_toggle',
 								'_order'     => 20,
 
 								'attributes' => [
-									'class' => [ 'hp-listing__action', 'hp-listing__action--follow' ],
+									'class' => [ 'hp-vendor__action', 'hp-vendor__action--follow' ],
 								],
 							],
 						],

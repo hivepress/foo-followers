@@ -1,12 +1,6 @@
 <?php
-/**
- * Follow controller.
- *
- * @package HivePress\Controllers
- */
-
 namespace HivePress\Controllers;
-// todo
+
 use HivePress\Helpers as hp;
 use HivePress\Models;
 use HivePress\Blocks;
@@ -15,14 +9,14 @@ use HivePress\Blocks;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Follow controller class.
- *
- * @class Follow
+ * Controller class.
  */
 final class Follow extends Controller {
 
 	/**
 	 * Class constructor.
+	 *
+	 * @param array $args Controller arguments.
 	 */
 	public function __construct( $args = [] ) {
 		$args = hp\merge_arrays(
@@ -36,12 +30,12 @@ final class Follow extends Controller {
 						'rest'   => true,
 					],
 
-					'listings_follow_page' => [
-						'title'     => esc_html__( 'Feed', 'hivepress-followers' ),
+					'listings_feed_page'   => [
+						'title'     => esc_html__( 'Feed', 'foo-followers' ),
 						'base'      => 'user_account_page',
-						'path'      => '/follows',
-						'redirect'  => [ $this, 'redirect_listings_follow_page' ],
-						'action'    => [ $this, 'render_listings_follow_page' ],
+						'path'      => '/feed',
+						'redirect'  => [ $this, 'redirect_listings_feed_page' ],
+						'action'    => [ $this, 'render_listings_feed_page' ],
 						'paginated' => true,
 					],
 				],
@@ -73,17 +67,17 @@ final class Follow extends Controller {
 		}
 
 		// Get follows.
-		$follow = Models\Follow::query()->filter(
+		$follows = Models\Follow::query()->filter(
 			[
 				'user'   => get_current_user_id(),
 				'vendor' => $vendor->get_id(),
 			]
-		)->get_first();
+		)->get();
 
-		if ( $follow ) {
+		if ( $follows->count() ) {
 
-			// Delete follow.
-			$follow->delete();
+			// Delete follows.
+			$follows->delete();
 		} else {
 
 			// Add follow.
@@ -103,11 +97,11 @@ final class Follow extends Controller {
 	}
 
 	/**
-	 * Redirects listings follow page.
+	 * Redirects listings feed page.
 	 *
 	 * @return mixed
 	 */
-	public function redirect_listings_follow_page() {
+	public function redirect_listings_feed_page() {
 
 		// Check authentication.
 		if ( ! is_user_logged_in() ) {
@@ -115,7 +109,7 @@ final class Follow extends Controller {
 		}
 
 		// Check listings.
-		if ( ! hivepress()->request->get_context( 'follow_ids' ) ) {
+		if ( ! hivepress()->request->get_context( 'vendor_follow_ids' ) ) {
 			return hivepress()->router->get_url( 'user_account_page' );
 		}
 
@@ -123,31 +117,30 @@ final class Follow extends Controller {
 	}
 
 	/**
-	 * Renders listings follow page.
+	 * Renders listings feed page.
 	 *
 	 * @return string
 	 */
-	public function render_listings_follow_page() {
+	public function render_listings_feed_page() {
 
-		// Query listings.
+		// Set listing query.
 		hivepress()->request->set_context(
 			'post_query',
 			Models\Listing::query()->filter(
 				[
-					'status' => 'publish',
-					'id__in' => hivepress()->request->get_context( 'follow_ids', [] ),
+					'status'     => 'publish',
+					'vendor__in' => hivepress()->request->get_context( 'vendor_follow_ids' ),
 				]
-			)
-			->order( 'id__in' )
+			)->order( [ 'created_date' => 'desc' ] )
 			->limit( get_option( 'hp_listings_per_page' ) )
 			->paginate( hivepress()->request->get_page_number() )
 			->get_args()
 		);
 
-		// Render template.
+		// Render page template.
 		return ( new Blocks\Template(
 			[
-				'template' => 'listings_follow_page',
+				'template' => 'listings_feed_page',
 
 				'context'  => [
 					'listings' => [],
