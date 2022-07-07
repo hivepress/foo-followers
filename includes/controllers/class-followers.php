@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Controller class.
  */
-final class Follow extends Controller {
+final class Followers extends Controller {
 
 	/**
 	 * Class constructor.
@@ -34,8 +34,8 @@ final class Follow extends Controller {
 						'title'     => esc_html__( 'Feed', 'foo-followers' ),
 						'base'      => 'user_account_page',
 						'path'      => '/feed',
-						'redirect'  => [ $this, 'redirect_listings_feed_page' ],
-						'action'    => [ $this, 'render_listings_feed_page' ],
+						'redirect'  => [ $this, 'redirect_feed_page' ],
+						'action'    => [ $this, 'render_feed_page' ],
 						'paginated' => true,
 					],
 				],
@@ -47,7 +47,7 @@ final class Follow extends Controller {
 	}
 
 	/**
-	 * Follows vendor.
+	 * Follows or unfollows vendor.
 	 *
 	 * @param WP_REST_Request $request API request.
 	 * @return WP_Rest_Response
@@ -80,11 +80,11 @@ final class Follow extends Controller {
 			$follows->delete();
 		} else {
 
-			// Add follow.
+			// Add new follow.
 			$follow = ( new Models\Follow() )->fill(
 				[
-					'user'    => get_current_user_id(),
-					'listing' => $listing->get_id(),
+					'user'   => get_current_user_id(),
+					'vendor' => $vendor->get_id(),
 				]
 			);
 
@@ -97,18 +97,18 @@ final class Follow extends Controller {
 	}
 
 	/**
-	 * Redirects listings feed page.
+	 * Redirects listing feed page.
 	 *
 	 * @return mixed
 	 */
-	public function redirect_listings_feed_page() {
+	public function redirect_feed_page() {
 
 		// Check authentication.
 		if ( ! is_user_logged_in() ) {
 			return hivepress()->router->get_return_url( 'user_login_page' );
 		}
 
-		// Check listings.
+		// Check followed vendors.
 		if ( ! hivepress()->request->get_context( 'vendor_follow_ids' ) ) {
 			return hivepress()->router->get_url( 'user_account_page' );
 		}
@@ -117,24 +117,26 @@ final class Follow extends Controller {
 	}
 
 	/**
-	 * Renders listings feed page.
+	 * Renders listing feed page.
 	 *
 	 * @return string
 	 */
-	public function render_listings_feed_page() {
+	public function render_feed_page() {
 
-		// Set listing query.
+		// Create listing query.
+		$query = Models\Listing::query()->filter(
+			[
+				'status'     => 'publish',
+				'vendor__in' => hivepress()->request->get_context( 'vendor_follow_ids' ),
+			]
+		)->order( [ 'created_date' => 'desc' ] )
+		->limit( get_option( 'hp_listings_per_page' ) )
+		->paginate( hivepress()->request->get_page_number() );
+
+		// Set request context.
 		hivepress()->request->set_context(
 			'post_query',
-			Models\Listing::query()->filter(
-				[
-					'status'     => 'publish',
-					'vendor__in' => hivepress()->request->get_context( 'vendor_follow_ids' ),
-				]
-			)->order( [ 'created_date' => 'desc' ] )
-			->limit( get_option( 'hp_listings_per_page' ) )
-			->paginate( hivepress()->request->get_page_number() )
-			->get_args()
+			$query->get_args()
 		);
 
 		// Render page template.

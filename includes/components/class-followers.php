@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Component class.
  */
-final class Follow extends Component {
+final class Followers extends Component {
 
 	/**
 	 * Class constructor.
@@ -19,21 +19,24 @@ final class Follow extends Component {
 	 */
 	public function __construct( $args = [] ) {
 
-		// Set request context.
+		// Set request context for pages.
 		add_filter( 'hivepress/v1/components/request/context', [ $this, 'set_request_context' ] );
 
-		// Alter account menu.
-		add_filter( 'hivepress/v1/menus/user_account', [ $this, 'add_menu_items' ] );
+		// Add menu item to user account.
+		add_filter( 'hivepress/v1/menus/user_account', [ $this, 'add_menu_item' ] );
 
-		// Alter templates.
-		add_filter( 'hivepress/v1/templates/vendor_view_block', [ $this, 'alter_vendor_view_block' ] );
-		add_filter( 'hivepress/v1/templates/vendor_view_page', [ $this, 'alter_vendor_view_page' ] );
+		// Add toggle block to vendor templates.
+		add_filter( 'hivepress/v1/templates/vendor_view_block', [ $this, 'add_toggle_block' ] );
+		add_filter( 'hivepress/v1/templates/vendor_view_page', [ $this, 'add_toggle_block' ] );
 
 		parent::__construct( $args );
 	}
 
 	/**
-	 * Sets request context.
+	 * Sets request context for pages.
+	 *
+	 * @param array $context Context values.
+	 * @return array
 	 */
 	public function set_request_context( $context ) {
 
@@ -60,9 +63,7 @@ final class Follow extends Component {
 			}
 
 			// Cache vendor IDs.
-			if ( count( $vendor_ids ) <= 1000 ) {
-				hivepress()->cache->set_user_cache( $user_id, 'vendor_follow_ids', 'models/follow', $vendor_ids );
-			}
+			hivepress()->cache->set_user_cache( $user_id, 'vendor_follow_ids', 'models/follow', $vendor_ids );
 		}
 
 		// Set request context.
@@ -72,12 +73,12 @@ final class Follow extends Component {
 	}
 
 	/**
-	 * Adds menu items.
+	 * Adds menu item to user account.
 	 *
 	 * @param array $menu Menu arguments.
 	 * @return array
 	 */
-	public function add_menu_items( $menu ) {
+	public function add_menu_item( $menu ) {
 		if ( hivepress()->request->get_context( 'vendor_follow_ids' ) ) {
 			$menu['items']['listings_feed'] = [
 				'route'  => 'listings_feed_page',
@@ -89,12 +90,12 @@ final class Follow extends Component {
 	}
 
 	/**
-	 * Alters listing view block.
+	 * Adds toggle block to vendor templates.
 	 *
 	 * @param array $template Template arguments.
 	 * @return array
 	 */
-	public function alter_vendor_view_block( $template ) {
+	public function add_toggle_block( $template ) {
 		return hp\merge_trees(
 			$template,
 			[
@@ -103,36 +104,7 @@ final class Follow extends Component {
 						'blocks' => [
 							'vendor_follow_toggle' => [
 								'type'       => 'follow_toggle',
-								'view'       => 'icon',
-								'_order'     => 20,
-
-								'attributes' => [
-									'class' => [ 'hp-vendor__action', 'hp-vendor__action--follow' ],
-								],
-							],
-						],
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Alters listing view page.
-	 *
-	 * @param array $template Template arguments.
-	 * @return array
-	 */
-	public function alter_vendor_view_page( $template ) {
-		return hp\merge_trees(
-			$template,
-			[
-				'blocks' => [
-					'vendor_actions_primary' => [
-						'blocks' => [
-							'vendor_follow_toggle' => [
-								'type'       => 'follow_toggle',
-								'_order'     => 20,
+								'_order'     => 50,
 
 								'attributes' => [
 									'class' => [ 'hp-vendor__action', 'hp-vendor__action--follow' ],

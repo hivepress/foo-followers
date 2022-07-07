@@ -55,7 +55,10 @@ class Follow_Toggle extends Toggle {
 			);
 
 			// Set active state if vendor is followed.
-			if ( in_array( $vendor->get_id(), hivepress()->request->get_context( 'vendor_follow_ids', [] ) ) ) {
+			if ( in_array(
+				$vendor->get_id(),
+				hivepress()->request->get_context( 'vendor_follow_ids', [] )
+			) ) {
 				$this->active = true;
 			}
 		}
