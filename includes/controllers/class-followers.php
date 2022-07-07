@@ -101,7 +101,12 @@ final class Followers extends Controller {
 			}
 		}
 
-		return hp\rest_response( 200 );
+		return hp\rest_response(
+			200,
+			[
+				'data' => [],
+			]
+		);
 	}
 
 	/**
@@ -117,19 +122,19 @@ final class Followers extends Controller {
 			return hp\rest_error( 401 );
 		}
 
-		// Get follows.
+		// Delete follows.
 		$follows = Models\Follow::query()->filter(
 			[
 				'user' => get_current_user_id(),
 			]
+		)->delete();
+
+		return hp\rest_response(
+			200,
+			[
+				'data' => [],
+			]
 		);
-
-		// Delete follows.
-		if ( ! $follows->delete() ) {
-			return hp\rest_error( 400 );
-		}
-
-		return hp\rest_response( 200 );
 	}
 
 	/**
