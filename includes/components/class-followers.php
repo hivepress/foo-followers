@@ -3,6 +3,7 @@ namespace HivePress\Components;
 
 use HivePress\Helpers as hp;
 use HivePress\Models;
+use HivePress\Emails;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -28,6 +29,9 @@ final class Followers extends Component {
 		// Add toggle block to vendor templates.
 		add_filter( 'hivepress/v1/templates/vendor_view_block', [ $this, 'add_toggle_block' ] );
 		add_filter( 'hivepress/v1/templates/vendor_view_page', [ $this, 'add_toggle_block' ] );
+
+		// Send emails about a new listing.
+		add_action( 'hivepress/v1/models/listing/update_status', [ $this, 'send_feed_emails' ], 10, 4 );
 
 		parent::__construct( $args );
 	}
@@ -115,5 +119,47 @@ final class Followers extends Component {
 				],
 			]
 		);
+	}
+
+	/**
+	 * Sends emails about a new listing.
+	 *
+	 * @param int    $listing_id Listing ID.
+	 * @param string $new_status New status.
+	 * @param string $old_status Old status.
+	 * @param object $listing Listing object.
+	 */
+	public function send_feed_emails( $listing_id, $new_status, $old_status, $listing ) {
+
+		// Check listing status.
+		if ( 'publish' !== $new_status || ! in_array( $old_status, [ 'auto-draft', 'pending' ] ) ) {
+			return;
+		}
+
+		// Get follows.
+		$follows = Models\Follow::query()->filter(
+			[
+				'vendor' => $listing->get_vendor__id(),
+			]
+		)->get();
+
+		foreach ( $follows as $follow ) {
+
+			// Get user.
+			$user = $follow->get_user();
+
+			// Send email.
+			( new Emails\Listing_Feed(
+				[
+					'recipient' => $user->get_email(),
+
+					'tokens'    => [
+						'user_name'     => $user->get_display_name(),
+						'listing_title' => $listing->get_title(),
+						'listing_url'   => hivepress()->router->get_url( 'listing_view_page', [ 'listing_id' => $listing->get_id() ] ),
+					],
+				]
+			) )->send();
+		}
 	}
 }

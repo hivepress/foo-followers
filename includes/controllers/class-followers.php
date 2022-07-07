@@ -22,7 +22,7 @@ final class Followers extends Controller {
 		$args = hp\merge_arrays(
 			[
 				'routes' => [
-					'vendor_follow_action' => [
+					'vendor_follow_action'    => [
 						'base'   => 'vendor_resource',
 						'path'   => '/follow',
 						'method' => 'POST',
@@ -30,7 +30,15 @@ final class Followers extends Controller {
 						'rest'   => true,
 					],
 
-					'listings_feed_page'   => [
+					'vendors_unfollow_action' => [
+						'base'   => 'vendors_resource',
+						'path'   => '/unfollow',
+						'method' => 'POST',
+						'action' => [ $this, 'unfollow_vendors' ],
+						'rest'   => true,
+					],
+
+					'listings_feed_page'      => [
 						'title'     => esc_html__( 'Feed', 'foo-followers' ),
 						'base'      => 'user_account_page',
 						'path'      => '/feed',
@@ -93,7 +101,40 @@ final class Followers extends Controller {
 			}
 		}
 
-		return hp\rest_response( 200 );
+		return hp\rest_response(
+			200,
+			[
+				'data' => [],
+			]
+		);
+	}
+
+	/**
+	 * Unfollows all vendors.
+	 *
+	 * @param WP_REST_Request $request API request.
+	 * @return WP_Rest_Response
+	 */
+	public function unfollow_vendors( $request ) {
+
+		// Check authentication.
+		if ( ! is_user_logged_in() ) {
+			return hp\rest_error( 401 );
+		}
+
+		// Delete follows.
+		$follows = Models\Follow::query()->filter(
+			[
+				'user' => get_current_user_id(),
+			]
+		)->delete();
+
+		return hp\rest_response(
+			200,
+			[
+				'data' => [],
+			]
+		);
 	}
 
 	/**
