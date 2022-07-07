@@ -1,0 +1,45 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Followers for HivePress\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-07-07 11:53+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0\n"
+"X-Domain: foo-followers"
+
+#. Description of the plugin
+msgid "Allow users to follow vendors."
+msgstr ""
+
+#: includes/controllers/class-followers.php:34
+msgid "Feed"
+msgstr ""
+
+#: includes/blocks/class-follow-toggle.php:25
+msgid "Follow"
+msgstr ""
+
+#. Name of the plugin
+msgid "Followers for HivePress"
+msgstr ""
+
+#. Author of the plugin
+msgid "Foo"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://example.com/"
+msgstr ""
+
+#: includes/blocks/class-follow-toggle.php:29
+msgid "Unfollow"
+msgstr ""
