@@ -1,0 +1,65 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Followers for HivePress\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-07-17 00:16+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0.1\n"
+"X-Domain: foo-followers"
+
+#. Description of the plugin
+msgid "Allow users to follow vendors."
+msgstr ""
+
+#: includes/forms/class-vendors-unfollow.php:22
+msgid "Are you sure you want to unfollow all vendors?"
+msgstr ""
+
+#: includes/controllers/class-followers.php:42
+msgid "Feed"
+msgstr ""
+
+#: includes/blocks/class-follow-toggle.php:25
+msgid "Follow"
+msgstr ""
+
+#. Name of the plugin
+msgid "Followers for HivePress"
+msgstr ""
+
+#. Author of the plugin
+msgid "Foo"
+msgstr ""
+
+#: includes/emails/class-listing-feed.php:23
+msgid ""
+"Hi, %user_name%! There is a new listing \"%listing_title%\" in your feed, "
+"click on the following link to view it: %listing_url%"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://example.com/"
+msgstr ""
+
+#: includes/emails/class-listing-feed.php:22
+msgid "New Listing"
+msgstr ""
+
+#: includes/blocks/class-follow-toggle.php:29
+#: includes/forms/class-vendors-unfollow.php:28
+msgid "Unfollow"
+msgstr ""
+
+#: includes/templates/class-listings-feed-page.php:44
+#: templates/vendor/follow/vendors-unfollow-link.php:5
+msgid "Unfollow Vendors"
+msgstr ""
